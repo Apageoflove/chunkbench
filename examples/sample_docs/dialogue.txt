@@ -1,0 +1,60 @@
+Technical Support Dialogue Record
+
+Date: 2024-01-15
+Ticket ID: TS-20240115-042
+Duration: 45 minutes
+Participants: Support Agent (Sarah), Customer (Michael)
+
+---
+
+[00:00] Sarah: Thank you for calling TechCorp Technical Support. My name is Sarah. How may I assist you today?
+
+[00:15] Michael: Hi Sarah. I'm having trouble with my database connection. We recently upgraded to version 8.2 and now our application keeps throwing timeout errors when trying to connect to the PostgreSQL database. It was working fine before the upgrade.
+
+[00:35] Sarah: I understand you're experiencing connection timeout errors after upgrading to version 8.2. I can definitely help you with that. Can you tell me a bit more about your setup? What operating system are you running, and how is your database configured?
+
+[00:55] Michael: We're running Ubuntu 22.04 LTS. The database is PostgreSQL 15.2, hosted on a separate server. We're using connection pooling with PgBouncer in front of it. The application connects through a standard JDBC driver.
+
+[01:20] Sarah: Thank you for those details. The timeout issue with version 8.2 is actually a known issue related to the new connection handshake protocol. In version 8.2, we introduced TLS 1.3 as the default, which requires an additional round-trip during connection establishment. If PgBouncer is configured in transaction pooling mode, this can cause timeout issues.
+
+[01:45] Michael: That makes sense. We are indeed using transaction pooling mode. What's the recommended fix?
+
+[01:52] Sarah: There are two approaches you can take. The first and simplest is to increase the connection timeout in your application configuration. You can set the connectTimeout parameter in your JDBC connection string to 30 seconds instead of the default 10 seconds. The second approach is to configure PgBouncer to use session pooling mode for this specific database, which maintains dedicated connections and avoids the handshake overhead.
+
+[02:15] Michael: I'd prefer to try the timeout increase first since changing PgBouncer mode might affect other applications. Can you walk me through the JDBC connection string change?
+
+[02:28] Sarah: Of course. Your current connection string probably looks something like jdbc:postgresql://db-server:5432/mydb. You just need to append ?connectTimeout=30 to the end. So it becomes jdbc:postgresql://db-server:5432/mydb?connectTimeout=30. If you already have query parameters, use an ampersand instead: &connectTimeout=30.
+
+[02:50] Michael: Got it. Let me make that change. One more question — we're also seeing some performance degradation in our query execution times. Queries that used to take 50ms are now taking 200-300ms. Is that related to the same issue?
+
+[03:05] Sarah: That's likely a separate issue. The connection timeout is specifically about establishing the connection, not query execution. For the query performance degradation, there are a few things to check. First, version 8.2 changed the default query planner settings. Have you run ANALYZE on your tables after the upgrade?
+
+[03:25] Michael: No, we haven't. We assumed the upgrade wouldn't affect the query planner statistics.
+
+[03:32] Sarah: That's actually a common assumption, but it's important to run ANALYZE after major version upgrades. The query planner relies on statistical information about your data distribution, and these statistics can be invalidated during an upgrade. Running ANALYZE on all your tables will refresh the statistics and help the planner choose better execution plans.
+
+[03:50] Michael: Is there a command to run ANALYZE on all tables at once?
+
+[03:55] Sarah: Yes, you can run the command ANALYZE without specifying a table name, and it will analyze all tables in the current database. Or if you want to be more thorough, you can use VACUUM ANALYZE which will also reclaim storage space from dead tuples. However, VACUUM ANALYZE can take longer on large tables, so you might want to run it during a maintenance window.
+
+[04:20] Michael: Our database is about 500GB. How long would VACUUM ANALYZE typically take?
+
+[04:28] Sarah: For a 500GB database, VACUUM ANALYZE could take anywhere from 30 minutes to a few hours depending on your hardware, specifically disk I/O speed. If you're running on SSDs, it should be on the faster end. I'd recommend running it during off-peak hours or in a maintenance window.
+
+[04:45] Michael: We have NVMe SSDs, so hopefully it won't take too long. Is there anything else we should check after the upgrade?
+
+[04:55] Sarah: Yes, a few more things. Check your index usage statistics by querying pg_stat_user_indexes. If you see any indexes with zero scans since the upgrade, they might need to be rebuilt. Also, verify that your configuration parameters in postgresql.conf are still appropriate — some default values changed in 8.2. Specifically, check shared_buffers, work_mem, and effective_cache_size.
+
+[05:15] Michael: This has been really helpful, Sarah. Let me implement these changes and see if it resolves both issues. Should I open a new ticket if I need further assistance?
+
+[05:25] Sarah: Yes, please reference this ticket number TS-20240115-042 in any future communications so we can track the full history. Is there anything else I can help you with today?
+
+[05:35] Michael: No, that covers everything. Thanks for the thorough explanation!
+
+[05:42] Sarah: You're welcome, Michael. To summarize: increase your connection timeout to 30 seconds, run ANALYZE or VACUUM ANALYZE on your tables, and review your postgresql.conf settings. If you continue to experience issues, don't hesitate to reach out. Have a great day!
+
+[05:55] Michael: You too. Goodbye!
+
+---
+
+End of Record

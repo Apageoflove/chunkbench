@@ -1,0 +1,55 @@
+RAG System Architecture Overview
+
+1. Introduction
+
+Retrieval-Augmented Generation (RAG) is a technique that enhances large language model outputs by incorporating external knowledge retrieval. Unlike pure generative models that rely solely on parametric knowledge, RAG systems dynamically fetch relevant documents from a knowledge base to ground their responses in factual information.
+
+2. Core Components
+
+A typical RAG system consists of four core components: document ingestion, embedding and indexing, retrieval, and generation. Each component plays a critical role in ensuring the system produces accurate and relevant responses.
+
+2.1 Document Ingestion
+
+The document ingestion pipeline handles loading raw documents from various sources including PDFs, web pages, databases, and APIs. Documents are parsed, cleaned, and normalized into a unified text format. Metadata such as source URL, publication date, and document type are extracted and preserved for downstream filtering.
+
+2.2 Embedding and Indexing
+
+Once documents are ingested, they must be converted into vector representations for efficient similarity search. This process involves three steps. First, documents are split into smaller chunks using a chunking strategy. Second, each chunk is passed through an embedding model that produces a dense vector representation. Third, these vectors are stored in a vector database such as ChromaDB, Pinecone, or Weaviate.
+
+The choice of chunking strategy significantly impacts retrieval quality. Common strategies include fixed-size chunking, recursive chunking, semantic chunking, and proposition-based chunking. Each strategy has trade-offs between granularity, context preservation, and computational cost.
+
+2.3 Retrieval
+
+When a user submits a query, the retrieval component converts the query into a vector using the same embedding model. The vector database then performs a similarity search to find the top-K most relevant chunks. Advanced retrieval techniques include hybrid search (combining keyword and semantic search), re-ranking with cross-encoder models, and query expansion.
+
+2.4 Generation
+
+The generation component takes the retrieved chunks as context and constructs a prompt for the language model. The prompt typically includes the user's question, the retrieved context, and instructions for the model to answer based only on the provided context. This grounding mechanism reduces hallucination and improves factual accuracy.
+
+3. Vector Database Selection
+
+Choosing the right vector database depends on several factors. ChromaDB is ideal for local development and small-scale deployments. Pinecone offers managed cloud infrastructure with automatic scaling. Weaviate provides hybrid search capabilities combining dense and sparse vectors. Milvus excels at handling billion-scale vector collections with low latency.
+
+Key evaluation criteria for vector databases include query latency, indexing throughput, scalability, filtering capabilities, and cost. Benchmark results show that for collections under one million vectors, local solutions like ChromaDB perform comparably to managed services.
+
+4. Embedding Models
+
+The embedding model is a critical component that determines retrieval quality. Popular models include OpenAI's text-embedding-3-small for general-purpose English tasks, BAAI/bge-large-en-v1.5 for high-accuracy English retrieval, and BAAI/bge-small-zh-v1.5 for Chinese text. Multi-lingual models like multilingual-e5-large support over 100 languages.
+
+Model selection should consider the target language, required accuracy, latency budget, and deployment constraints. Larger models generally produce better embeddings but require more memory and inference time. Quantized models offer a good balance between quality and performance.
+
+5. Evaluation Metrics
+
+RAG system performance is evaluated across multiple dimensions. Retrieval quality is measured using Recall@K, Mean Reciprocal Rank (MRR), and Normalized Discounted Cumulative Gain (NDCG). Generation quality is assessed through faithfulness (whether the answer is grounded in retrieved context) and relevance (whether the answer addresses the question). End-to-end metrics include answer correctness and completeness.
+
+6. Best Practices
+
+Several best practices can significantly improve RAG system performance. First, experiment with multiple chunking strategies and select the one that performs best on your specific data. Second, use query transformation techniques like HyDE (Hypothetical Document Embeddings) to improve retrieval. Third, implement a re-ranking step using a cross-encoder model to refine retrieval results. Fourth, maintain document metadata to enable pre-retrieval filtering. Fifth, monitor and log retrieval quality metrics in production to detect drift.
+
+7. System Architecture Diagram
+
+A production RAG system typically follows a pipeline architecture. User queries enter through an API gateway. The query is processed by the retrieval service, which queries the vector database. Retrieved documents are passed to the generation service, which calls the language model. The response is returned to the user through the API gateway. Each service can be independently scaled based on load.
+
+8. Conclusion
+
+RAG systems represent a powerful paradigm for building knowledge-grounded AI applications. By combining the generative capabilities of large language models with the precision of information retrieval, RAG enables applications that are both knowledgeable and up-to-date. The key to success lies in careful selection of chunking strategies, embedding models, and retrieval techniques tailored to the specific use case.

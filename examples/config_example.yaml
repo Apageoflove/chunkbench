@@ -1,0 +1,33 @@
+documents:
+  paths:
+    - ./examples/sample_docs/technical.txt
+    - ./examples/sample_docs/legal.txt
+    - ./examples/sample_docs/dialogue.txt
+
+qa:
+  path: ./examples/sample_qa.jsonl
+
+strategies:
+  - fixed_size
+  - recursive
+  - semantic
+  - sentence_window
+  - token_aware
+
+embedding:
+  model: "all-MiniLM-L6-v2"
+
+retrieval:
+  top_k: 5
+
+llm:
+  api_key: null
+  model: "gpt-4o-mini"
+
+output:
+  dir: "./chunkbench_output"
+  save_html_report: true
+
+cache:
+  dir: "./.chunkbench_cache"
+  reuse_index: false
